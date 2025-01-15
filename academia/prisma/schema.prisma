@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ATTENDANCE {
+  STUDENT_ID       Int     @default(autoincrement()) @db.SmallInt
+  COURSE_ID        String
+  CLASSES_ATTENDED Json?   @db.Json
+  COURSES          COURSES @relation(fields: [COURSE_ID], references: [COURSE_ID], onDelete: NoAction, onUpdate: NoAction)
+  STUDENT          STUDENT @relation(fields: [STUDENT_ID], references: [STUDENT_ID], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([STUDENT_ID, COURSE_ID])
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model COURSE_DEPARTMENT {
+  COURSE_ID     String
+  DEPARTMENT_ID Int        @db.SmallInt
+  SEMESTER      Int?       @db.SmallInt
+  COURSES       COURSES    @relation(fields: [COURSE_ID], references: [COURSE_ID], onDelete: NoAction, onUpdate: NoAction)
+  DEPARTMENT    DEPARTMENT @relation(fields: [DEPARTMENT_ID], references: [DEPARTMENT_ID], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([COURSE_ID, DEPARTMENT_ID])
+  @@map("COURSE-DEPARTMENT")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model COURSES {
+  COURSE_ID                 String                      @id
+  NAME                      String
+  CREDITS                   Int?                        @db.SmallInt
+  INFO                      Json?                       @db.Json
+  isELECTIVE                Boolean
+  ATTENDANCE                ATTENDANCE[]
+  COURSE_DEPARTMENT         COURSE_DEPARTMENT[]
+  LECTURE                   LECTURE[]
+  STUDENT_COURSE            STUDENT_COURSE[]
+  TEACHER_DEPARTMENT_COURSE TEACHER_DEPARTMENT_COURSE[]
+  TEACHES                   TEACHES[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model DEPARTMENT {
+  DEPARTMENT_ID             Int                         @id @default(autoincrement()) @db.SmallInt
+  NAME                      String                      @unique @default("")
+  TEACHERS                  Int?                        @map("#TEACHERS")
+  STUDENTS                  BigInt?                     @map("#STUDENTS")
+  COURSE_DEPARTMENT         COURSE_DEPARTMENT[]
+  DEPARTMENT_SECTION        DEPARTMENT_SECTION[]
+  LECTURE                   LECTURE[]
+  STUDENT                   STUDENT[]
+  TEACHER_DEPARTMENT_COURSE TEACHER_DEPARTMENT_COURSE[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model DEPARTMENT_SECTION {
+  DEPARTMENT_ID Int        @default(autoincrement()) @db.SmallInt
+  SECTION       String
+  DEPARTMENT    DEPARTMENT @relation(fields: [DEPARTMENT_ID], references: [DEPARTMENT_ID], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([DEPARTMENT_ID, SECTION])
+  @@map("DEPARTMENT-SECTION")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model LECTURE {
+  LECTURE_ID    String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  TEACHER_ID    String     @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  TIME          DateTime   @default(dbgenerated("(now() AT TIME ZONE 'utc'::text)")) @db.Timestamptz(6)
+  ROOM_NO       Int?       @db.SmallInt
+  TOPIC         String?    @default("")
+  COURSE_ID     String?
+  SEMESTER      Int?       @db.SmallInt
+  SECTION       String?
+  DEPARTMENT_ID Int        @db.SmallInt
+  COURSES       COURSES?   @relation(fields: [COURSE_ID], references: [COURSE_ID], onDelete: NoAction, onUpdate: NoAction)
+  DEPARTMENT    DEPARTMENT @relation(fields: [DEPARTMENT_ID], references: [DEPARTMENT_ID], onDelete: NoAction, onUpdate: NoAction)
+  TEACHER       TEACHER    @relation(fields: [TEACHER_ID], references: [Teacher_ID], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model STUDENT {
+  STUDENT_ID     Int              @id @default(autoincrement()) @db.SmallInt
+  NAME           String
+  CURRENT_SEM    Int?             @db.SmallInt
+  INFO           Json?            @db.Json
+  DEPT           String?
+  SECTION        String?          @default("")
+  ATTENDANCE     ATTENDANCE[]
+  DEPARTMENT     DEPARTMENT?      @relation(fields: [DEPT], references: [NAME], onDelete: NoAction, onUpdate: NoAction)
+  STUDENT_COURSE STUDENT_COURSE[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model STUDENT_COURSE {
+  STUDENT_ID Int     @default(autoincrement()) @db.SmallInt
+  COURSE_ID  String
+  SEMESTER   Int?    @db.SmallInt
+  SECTION    String?
+  COURSES    COURSES @relation(fields: [COURSE_ID], references: [COURSE_ID], onDelete: NoAction, onUpdate: NoAction)
+  STUDENT    STUDENT @relation(fields: [STUDENT_ID], references: [STUDENT_ID], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([STUDENT_ID, COURSE_ID])
+  @@map("STUDENT-COURSE")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model TEACHER {
+  Teacher_ID                String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  Name                      String                      @default("")
+  INFO                      Json?                       @db.Json
+  LECTURE                   LECTURE[]
+  TEACHER_DEPARTMENT_COURSE TEACHER_DEPARTMENT_COURSE[]
+  TEACHES                   TEACHES[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model TEACHER_DEPARTMENT_COURSE {
+  TEACHER_ID    String     @db.Uuid
+  DEPARTMENT_ID Int        @db.SmallInt
+  SECTION       String?    @default("")
+  COURSE_ID     String
+  SEMESTER      Int?       @db.SmallInt
+  COURSES       COURSES    @relation(fields: [COURSE_ID], references: [COURSE_ID], onDelete: NoAction, onUpdate: NoAction, map: "TEACHER-DEPARTMENT_COURSE_ID_fkey")
+  DEPARTMENT    DEPARTMENT @relation(fields: [DEPARTMENT_ID], references: [DEPARTMENT_ID], onDelete: NoAction, onUpdate: NoAction, map: "TEACHER-DEPARTMENT_DEPARTMENT_ID_fkey")
+  TEACHER       TEACHER    @relation(fields: [TEACHER_ID], references: [Teacher_ID], onDelete: NoAction, onUpdate: NoAction, map: "TEACHER-DEPARTMENT_TEACHER_ID_fkey")
+
+  @@id([TEACHER_ID, DEPARTMENT_ID, COURSE_ID])
+  @@map("TEACHER-DEPARTMENT-COURSE")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model TEACHES {
+  TEACHER_ID String  @db.Uuid
+  COURSE_ID  String
+  COURSES    COURSES @relation(fields: [COURSE_ID], references: [COURSE_ID], onDelete: NoAction, onUpdate: NoAction)
+  TEACHER    TEACHER @relation(fields: [TEACHER_ID], references: [Teacher_ID], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([TEACHER_ID, COURSE_ID])
+}
+
+model profiles {
+  email String @default("")
+  role  String @default("")
+  id    String @id(map: "USERS_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+}
