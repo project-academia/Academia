@@ -7,13 +7,14 @@ import { createClient } from '@/utils/supabase/server'
 import { submitAttendence } from "@/utils/redis/actions";
 import SubmitButton from "./submitButton";
 import { getRole } from "@/utils/prisma/profiles/actions";
+import { attendenceGETTest } from './test/action';
 
 
 export default async function Home() {
   const supabase = await createClient()
 
-  function submit() {
-    submitAttendence('L_1');
+  async function submit() {
+    attendenceGETTest();
   }
 
 /*   async function getRole(id: string): Promise<string> {
