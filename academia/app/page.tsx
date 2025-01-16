@@ -28,7 +28,7 @@ export default async function Home() {
   const role = await getRole(data.user.id);
 
   if (role === "teacher") {
-    redirect("/app/teacher/dashboard");
+    redirect("/teacher/dashboard");
   } else if (role === "student") {
     redirect("/student/dashboard");
   } else {
